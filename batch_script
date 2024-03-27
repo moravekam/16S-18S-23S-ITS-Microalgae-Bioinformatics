@@ -1,0 +1,81 @@
+16S Batch Script
+# compile fastq files
+make.file(inputdir=., type=fastq, prefix=16S_p0)
+
+# combine the forward and reverse reads
+make.contigs(file=16S_p0.files, maxambig=0, maxlength=475, maxhomop=8)
+summary.seqs(fasta=current, count=current)	
+
+# remove duplicate sequences
+unique.seqs(fasta=current, count=current)
+summary.seqs(fasta=current, count=current)
+
+# customize reference alignment
+pcr.seqs(fasta=silva.align, oligos=16S.oligos, keepdots=T, pdiffs=0, rdiffs=0)
+summary.seqs(fasta=current)
+
+# align sequences to reference alignment
+align.seqs(fasta=16S_p0.trim.contigs.unique.fasta, reference=silva.pcr.align)
+summary.seqs(fasta=current, count=current)
+
+# screen sequences
+screen.seqs(fasta=current, count=current, minlength=420)
+summary.seqs(fasta=current, count=current)
+
+#  filter sequences to remove overhangs
+filter.seqs(fasta=current, vertical=T, trump=.)
+summary.seqs(fasta=current, count=current)
+
+#  remove redundancies generated through trimming
+unique.seqs(fasta=current, count=current)
+summary.seqs(fasta=current, count=current)
+
+# split sequences into groups and sort them by abundance
+pre.cluster(fasta=current, count=current, diffs=3)
+
+# remove chimeras
+chimera.vsearch(fasta=current, count=current, dereplicate=T)
+summary.seqs(fasta=current, count=current)
+
+# get missing sequences
+list.seqs(fasta=silva.pcr.align)
+get.seqs(taxonomy=silva.tax, accnos=current)
+
+# Classify sequences
+classify.seqs(fasta=16S_p0.trim.contigs.unique.good.filter.unique.precluster.denovo.vsearch.fasta, count=16S_p0.trim.contigs.unique.good.filter.unique.precluster.denovo.vsearch.count_table, reference=silva.pcr.align, taxonomy=silva.pick.tax, cutoff=80)
+
+# summarize taxonomy data
+summary.tax(taxonomy=current, count=current)
+
+# rename files
+rename.file(fasta=current, list=current, count=current, taxonomy=current, column=current, prefix=final_p0)
+
+# Process OTUs - make OTU table
+#cluster sequences into OTUs
+dist.seqs(fasta=final_p0.fasta, cutoff=0.03)
+cluster(column=final_p0.dist, count=final_p0.count_table)
+
+# find how many sequences are in each OTU from each group
+make.shared(list=current, count=current, label=0.03)
+
+# get taxonomy for each otu
+classify.otu(list=current, count=current, taxonomy=final_p0.taxonomy, label=0.03)
+
+# get number of sequences per sample
+count.groups(shared=final_p0.opti_mcc.shared)
+
+#subsample data
+sub.sample(shared=final.opti_mcc.shared, size=)
+
+##OTU-based analysis
+#rarefy data for beta diversity
+dist.shared(shared=final_p0.opti_mcc.shared, calc=braycurtis, subsample=t)
+
+#nmds - 2d
+nmds(phylip=final_p0.opti_mcc.braycurtis.0.03.lt.ave.dist)
+#output file = final.opti_mcc.braycurtis.0.03.lt.ave.nmds.stress
+rename.file(column=current, prefix=final_p0.2d)
+
+#nmds - 3d
+nmds(phylip=final_p0.opti_mcc.braycurtis.0.03.lt.ave.dist, mindim=3, maxdim=3)
+rename.file(column=current, prefix=final_p0.3d)
