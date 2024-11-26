@@ -1,0 +1,54 @@
+#make.shared(list=current, count=final_silv_euk.count_table, label=0.05)
+
+#classify.otu(list=current, count=current, taxonomy=final_silv_euk.taxonomy, label=0.05)
+
+#get.oturep(fasta=current, count=current, list=current, method=abundance)
+
+#count.groups(shared=current)
+
+#phylotype(taxonomy=final_silv_euk.taxonomy)
+
+#summary.single(shared=current, calc=nseqs_sobs_coverage_shannon_shannoneven_invsimpson, subsample=)
+
+##dist.shared(shared=current, calc=braycurtis_jest_thetayc, subsample=)
+
+##sub.sample(shared=current, size=)
+
+
+# PR2 database for protists
+
+#pcr.seqs(fasta=pr2_db.align, oligos=ITS.oligos, keepdots=T, pdiffs=3, rdiffs=3)
+#summary.seqs(fasta=current)
+
+#list.seqs(fasta=pr2_db.pcr.align)
+#get.seqs(taxonomy=pr2_db.tax, accnos=current)
+
+#chimera.vsearch(fasta=euk.trim.contigs.good.unique.precluster.fasta, count=euk.trim.contigs.good.unique.precluster.count_table, dereplicate=T)
+#summary.seqs(fasta=current, count=current)
+
+classify.seqs(fasta=euk.trim.contigs.good.unique.precluster.denovo.vsearch.fasta, count=euk.trim.contigs.good.unique.precluster.denovo.vsearch.count_table, reference=pr2_db.pcr.align, taxonomy=pr2_db.pick.tax, cutoff=80)
+
+summary.tax(taxonomy=current, count=current)
+
+rename.file(fasta=current, count=current, taxonomy=current, prefix=final_pr2_euk)
+
+#dist.seqs(fasta=current, cutoff=0.03)
+
+#make OTU table
+
+cluster(fasta=final_pr2_euk.fasta, count=final_pr2_euk.count_table, method=agc, cutoff=0.05)
+
+make.shared(list=current, count=final_pr2_euk.count_table, label=0.05)
+
+classify.otu(list=current, count=current, taxonomy=final_pr2_euk.taxonomy, label=0.05)
+
+get.oturep(fasta=current, count=current, list=current, method=abundance)
+
+count.groups(shared=current)
+phylotype(taxonomy=final_pr2_euk.taxonomy)
+
+#summary.single(shared=current, calc=nseqs_sobs_coverage_shannon_shannoneven_invsimpson, subsample=)
+
+##dist.shared(shared=current, calc=braycurtis_jest_thetayc, subsample=)
+##
+##sub.sample(shared=current, size=)
