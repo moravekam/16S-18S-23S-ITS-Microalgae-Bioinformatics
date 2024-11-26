@@ -1,0 +1,82 @@
+# compile fastq files
+#make.file(inputdir=., type=fastq, prefix=18S)
+
+rename.file(file=18S.files, prefix=18S_p0)
+
+make.contigs(file=18S_p0.files, maxambig=0, maxlength=400, maxhomop=8)
+summary.seqs(fasta=current, count=current)
+
+screen.seqs(fasta=current, count=current, minlength=350)
+summary.seqs(fasta=current, count=current)
+
+# remove duplicate sequences
+unique.seqs(fasta=current, count=current)
+summary.seqs(fasta=current, count=current)
+
+# modify reference sequences
+pcr.seqs(fasta=silva.nr_v132.align, oligos=18S.oligos, keepdots=T, pdiffs=0, rdiffs=0)
+summary.seqs(fasta=current)
+
+# align sequences to reference alignment
+align.seqs(fasta=18S_p0.trim.contigs.good.unique.fasta, reference=silva.nr_v132.pcr.align, flip=T)
+summary.seqs(fasta=current, count=current)
+
+#include screen.seqs?
+screen.seqs(fasta=current, count=current, optimize=start-end)
+summary.seqs(fasta=current, count=current)
+
+filter.seqs(fasta=current, vertical=T, trump=.)
+summary.seqs(fasta=current, count=current)
+
+unique.seqs(fasta=current, count=current)
+summary.seqs(fasta=current, count=current)
+
+pre.cluster(fasta=current, count=current, diffs=3)
+
+chimera.vsearch(fasta=current, count=current, dereplicate=T)
+summary.seqs(fasta=current, count=current)
+
+list.seqs(fasta=silva.nr_v132.pcr.align)
+get.seqs(taxonomy=silva.nr_v132.tax, accnos=current)
+
+classify.seqs(fasta=18S_p0.trim.contigs.good.unique.good.filter.unique.precluster.denovo.vsearch.fasta, count=18S_p0.trim.contigs.good.unique.good.filter.unique.precluster.denovo.vsearch.count_table, reference=silva.nr_v132.pcr.align, taxonomy=silva.nr_v132.pick.tax, cutoff=80)
+
+summary.tax(taxonomy=current, count=current)
+
+rename.file(fasta=current, list=current, count=current, taxonomy=current, column=current, prefix=final_p0)
+#RStudio
+
+dist.seqs(fasta=final_p0.fasta, cutoff=0.03)
+cluster(column=final_p0.dist, count=final_p0.count_table)
+make.shared(list=current, count=current, label=0.03)
+classify.otu(list=current, count=current, taxonomy=final_p0.taxonomy, label=0.03)
+
+# bin sequences into phylotypes
+#phylotype(taxonomy=final.taxonomy)
+#
+# #phylogenetic tree
+#dist.seqs(fasta=final.fasta, output=lt)
+#clearcut(phylip=final.phylip.dist)
+#
+# ##Subsample data
+# # get number of sequences per sample
+# run on interactive mode
+#count.groups(shared=final.opti_mcc.shared)
+#sub.sample(shared=final.opti_mcc.shared, size=)
+
+# generate rarefaction curves for alpha diversity
+rarefaction.single(shared=final_p0.opti_mcc.shared, calc=sobs, freq=100)
+summary.single(shared=final_p0.opti_mcc.shared, calc=nseqs-coverage-sobs-invsimpson, subsample=T)
+#
+# #rarefy data for beta diversity
+dist.shared(shared=final_p0.opti_mcc.shared, calc=braycurtis, output=square, subsample=t)
+#
+# #pcoa files - Riffomonas
+pcoa(phylip=final_p0.opti_mcc.braycurtis.0.03.square.ave.dist)
+#
+# #nmds files - 2d - Riffomonas
+nmds(phylip=final_p0.opti_mcc.braycurtis.0.03.square.ave.dist, maxdim=2)
+#
+# #nmds files - 3d - Riffomonas
+#nmds(phylip=final.opti_mcc.braycurtis.0.03.square.ave.dist, maxdim-3)
+# # you want stress value below 0.20, but 0.10 is better
