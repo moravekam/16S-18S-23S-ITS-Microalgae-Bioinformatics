@@ -1,0 +1,39 @@
+#make.file(inputdir=., type=fastq, prefix=23S)
+
+#make.contigs(file=23S.files, maxambig=0, maxlength=500, maxhomop=8)
+#summary.seqs(fasta=current, count=current)
+
+#screen.seqs(fasta=23S.trim.contigs.fasta, count=23S.contigs.count_table, minlength=400)
+#summary.seqs(fasta=current, count=current)
+
+#unique.seqs(fasta=current, count=current)
+#summary.seqs(fasta=current, count=current)
+
+pcr.seqs(fasta=23S.align, oligos=23S.oligos, keepdots=T, pdiffs=1, rdiffs=1)
+summary.seqs(fasta=current, count=current)
+
+pre.cluster(fasta=23S.trim.contigs.unique.fasta, count=23S.trim.contigs.count_table, diffs=3)
+
+chimera.vsearch(fasta=current, count=current, dereplicate=T)
+summary.seqs(fasta=current, count=current)
+
+list.seqs(fasta=23S.pcr.align)
+get.seqs(taxonomy=23S.tax, accnos=current)
+
+classify.seqs(fasta=23S.trim.contigs.unique.precluster.denovo.vsearch.fasta, count=23S.trim.contigs.unique.precluster.denovo.vsearch.count_table, reference=23S.pcr.align, taxonomy=23S.pick.tax, cutoff=80)
+
+summary.tax(taxonomy=current, count=current)
+
+rename.file(fasta=current, count=current, list=current, column=current, taxonomy=current, prefix=final_23S)
+
+cluster(fasta=final_23S.fasta, count=final_23S.count_table, method=agc, cutoff=0.05)
+
+make.shared(list=current, count=final_23S.count_table, label=0.05)
+
+classify.otu(list=current, count=current, taxonomy=final_23S.taxonomy, label=0.05)
+
+get.oturep(fasta=current, count=current, list=current, method=abundance)
+
+count.groups(shared=current)
+
+phylotype(taxonomy=final_23S.taxonomy)
