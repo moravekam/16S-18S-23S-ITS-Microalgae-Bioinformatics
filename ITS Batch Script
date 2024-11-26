@@ -1,0 +1,46 @@
+#combine fastq files
+make.file(inputdir=., type=fastq, prefix=fungi)
+
+make.contigs(file=fungi.files, maxambig=0, maxlength=400, maxhomop=8)
+summary.seqs(fasta=current, count=current)
+
+screen.seqs(fasta=current, count=current, minlength=300)
+summary.seqs(fasta=current, count=current)
+
+unique.seqs(fasta=current, count=current)
+summary.seqs(fasta=current, count=current)
+
+pcr.seqs(fasta=fungi.align, oligos=ITS.oligos, keepdots=T, pdiffs=3, rdiffs=3)
+summary.seqs(fasta=current)
+
+pre.cluster(fasta=fungi.trim.contigs.good.unique.fasta, count=current, diffs=3)
+
+chimera.vsearch(fasta=current, count=current, dereplicate=T)
+summary.seqs(fasta=current, count=current)
+
+list.seqs(fasta=fungi.pcr.align)
+get.seqs(taxonomy=fungi.tax, accnos=current)
+
+classify.seqs(fasta=fungi.trim.contigs.good.unique.precluster.denovo.vsearch.fasta, count=current, reference=fungi.pcr.align, taxonomy=fungi.pick.tax, cutoff=80)
+
+summary.tax(taxonomy=current, count=current)
+
+rename.file(fasta=current, count=current, taxonomy=current, prefix=final_fungi)
+
+#dist.seqs(fasta=current, cutoff=0.03)
+
+#make OTU table
+
+cluster(fasta=final_fungi.fasta, count=final_fungi.count_table, method=agc, cutoff=0.05)
+
+make.shared(list=current, count=final_fungi.count_table, label=0.05)
+
+classify.otu(list=current, count=current, taxonomy=final_fungi.taxonomy, label=0.05)
+
+get.oturep(fasta=current, count=current, list=current, method=abundance)
+
+count.groups(chared=current)
+
+dist.shared(shared=current, calc=braycurtis_jest_thetayc, subsample=)
+
+sub.sample(shared=current, size=)
